@@ -86,7 +86,9 @@ public partial class App : Application
             .AddSingleton<TrayIconService>()
             .AddSingleton<MainViewModel>()
             .AddTransient<ReminderEditorViewModel>()
-            .AddTransient<SnoozeTimeViewModel>();
+            .AddTransient<SnoozeTimeViewModel>()
+            .AddTransient<DebtEditorViewModel>()
+            .AddTransient<DebtPaymentViewModel>();
         return builder.Build();
     }
 

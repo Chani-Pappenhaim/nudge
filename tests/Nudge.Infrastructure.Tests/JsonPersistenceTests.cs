@@ -50,6 +50,28 @@ public sealed class JsonPersistenceTests : IDisposable
     }
 
     [Fact]
+    public void Debts_SurviveARestart()
+    {
+        var path = PathOf("debts.json");
+        var start = new DateTime(2026, 10, 8, 9, 30, 0);
+        var debt = Debt.Create(DebtDirection.IOwe, "דנה", "ארוחת צהריים", 120.5m, start)
+            .RecordPayment(20m, start.AddDays(1))
+            .LinkReminder(Guid.NewGuid());
+        var item = Debt.Create(DebtDirection.OwedToMe, "אבי", "מקדחה", null, start).Settle(start.AddDays(2));
+        var repository = new JsonDebtRepository(new JsonFileStore<DebtRecord>(path));
+        repository.Save(debt);
+        repository.Save(item);
+
+        var reloaded = new JsonDebtRepository(new JsonFileStore<DebtRecord>(path)).GetAll().ToDictionary(d => d.Id);
+
+        // Records compare lists by reference, so payments are compared separately.
+        Assert.Equal(debt with { Payments = reloaded[debt.Id].Payments }, reloaded[debt.Id]);
+        Assert.Equal(debt.Payments, reloaded[debt.Id].Payments);
+        Assert.Equal(item with { Payments = reloaded[item.Id].Payments }, reloaded[item.Id]);
+        Assert.Empty(reloaded[item.Id].Payments);
+    }
+
+    [Fact]
     public void CorruptFile_IsBackedUpInsteadOfLost()
     {
         var path = PathOf("reminders.json");

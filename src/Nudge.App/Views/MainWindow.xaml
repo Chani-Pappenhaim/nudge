@@ -73,6 +73,119 @@
         </Grid>
       </Border>
     </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:DebtItemViewModel}">
+      <Border x:Name="Card" Style="{StaticResource Card}">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <Border x:Name="SideBar" Width="4" CornerRadius="2" Background="{StaticResource AccentBrush}" />
+
+          <StackPanel Grid.Column="1" Margin="12,0">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Text="{Binding Person}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+              <Border x:Name="Badge" CornerRadius="9" Padding="8,1" Margin="8,0,0,0" VerticalAlignment="Center"
+                      Background="{StaticResource AccentBrush}">
+                <TextBlock Text="{Binding DirectionText}" FontSize="11" FontWeight="SemiBold" Foreground="{StaticResource OnAccentBrush}" />
+              </Border>
+            </StackPanel>
+            <WrapPanel Margin="0,4,0,0">
+              <TextBlock Style="{StaticResource Glyph}" Text="{Binding AmountGlyph}" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,6,0" />
+              <TextBlock x:Name="AmountLine" Text="{Binding AmountText}" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}" />
+            </WrapPanel>
+            <TextBlock Text="{Binding Description}" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,2,0,0"
+                       Visibility="{Binding HasDescription, Converter={StaticResource VisibleWhenTrue}}" />
+            <WrapPanel Margin="0,4,0,0" Visibility="{Binding HasReminder, Converter={StaticResource VisibleWhenTrue}}">
+              <TextBlock Style="{StaticResource Glyph}" Text="&#xEA8F;" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,5,0" />
+              <TextBlock Text="{Binding ReminderText}" Style="{StaticResource MutedText}" />
+            </WrapPanel>
+            <TextBlock Text="{Binding SettledText}" Style="{StaticResource MutedText}" Margin="0,4,0,0"
+                       Visibility="{Binding IsSettled, Converter={StaticResource VisibleWhenTrue}}" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                      Visibility="{Binding IsOpen, Converter={StaticResource VisibleWhenTrue}}">
+            <Button Style="{StaticResource IconButton}" Content="&#xE8C7;" ToolTip="רישום החזר" AutomationProperties.Name="רישום החזר"
+                    Visibility="{Binding IsMoney, Converter={StaticResource VisibleWhenTrue}}"
+                    Command="{Binding DataContext.RecordPaymentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="&#xE7A7;" ToolTip="{Binding UndoPaymentToolTip}" AutomationProperties.Name="ביטול החזר אחרון"
+                    Visibility="{Binding CanUndoPayment, Converter={StaticResource VisibleWhenTrue}}"
+                    Command="{Binding DataContext.UndoPaymentCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="&#xE73E;" ToolTip="הוחזר במלואו" AutomationProperties.Name="הוחזר"
+                    Foreground="{StaticResource AccentBrush}"
+                    Command="{Binding DataContext.SettleDebtCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="&#xEA8F;" ToolTip="{Binding ReminderToolTip}" AutomationProperties.Name="תזכורת"
+                    Command="{Binding DataContext.DebtReminderCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="&#xE70F;" ToolTip="עריכה" AutomationProperties.Name="עריכה"
+                    Command="{Binding DataContext.EditDebtCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="מחיקה" AutomationProperties.Name="מחיקה" Foreground="{StaticResource DangerBrush}"
+                    Command="{Binding DataContext.DeleteDebtCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center"
+                      Visibility="{Binding IsSettled, Converter={StaticResource VisibleWhenTrue}}">
+            <Button Style="{StaticResource IconButton}" Content="&#xE7A7;" ToolTip="החזרה לחובות הפתוחים" AutomationProperties.Name="ביטול סימון הוחזר"
+                    Command="{Binding DataContext.ReopenDebtCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="מחיקה" AutomationProperties.Name="מחיקה" Foreground="{StaticResource DangerBrush}"
+                    Command="{Binding DataContext.DeleteDebtCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding IsOwedToMe}" Value="False">
+          <Setter TargetName="SideBar" Property="Background" Value="{StaticResource WarningBrush}" />
+          <Setter TargetName="Badge" Property="Background" Value="{StaticResource WarningBrush}" />
+          <Setter TargetName="AmountLine" Property="Foreground" Value="{StaticResource WarningBrush}" />
+        </DataTrigger>
+        <DataTrigger Binding="{Binding IsOpen}" Value="False">
+          <Setter TargetName="SideBar" Property="Background" Value="{StaticResource InactiveBrush}" />
+          <Setter TargetName="Card" Property="Opacity" Value="0.7" />
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <!-- One segment of a switcher; the checked segment is filled with its Tag brush. -->
+    <Style x:Key="Segment" TargetType="RadioButton">
+      <Setter Property="Foreground" Value="{StaticResource MutedTextBrush}" />
+      <Setter Property="Tag" Value="{StaticResource AccentBrush}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate TargetType="RadioButton">
+            <Border x:Name="Chip" CornerRadius="14" Padding="12,5" Margin="0,0,6,6" BorderThickness="1"
+                    Background="{StaticResource CardBrush}" BorderBrush="{StaticResource CardBorderBrush}">
+              <ContentPresenter TextElement.FontWeight="SemiBold" />
+            </Border>
+            <ControlTemplate.Triggers>
+              <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="Chip" Property="BorderBrush" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
+              </Trigger>
+              <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter TargetName="Chip" Property="BorderBrush" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
+              </Trigger>
+              <Trigger Property="IsChecked" Value="True">
+                <Setter TargetName="Chip" Property="Background" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
+                <Setter TargetName="Chip" Property="BorderBrush" Value="{Binding Tag, RelativeSource={RelativeSource TemplatedParent}}" />
+                <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+              </Trigger>
+            </ControlTemplate.Triggers>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
+    </Style>
   </Window.Resources>
 
   <Grid Margin="20,16,20,20">
@@ -103,6 +216,12 @@
     </Grid>
 
     <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+      <TabControl.Resources>
+        <Style TargetType="TabItem" BasedOn="{StaticResource {x:Type TabItem}}">
+          <Setter Property="MinWidth" Value="0" />
+          <Setter Property="Width" Value="110" />
+        </Style>
+      </TabControl.Resources>
       <TabItem Header="תזכורות">
         <Grid Margin="0,12,0,0">
           <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -115,6 +234,49 @@
             <TextBlock Text="אין עדיין תזכורות" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4" />
             <TextBlock Text="לחיצה על &quot;תזכורת חדשה&quot; תיצור את הראשונה." Style="{StaticResource MutedText}" HorizontalAlignment="Center" />
           </StackPanel>
+        </Grid>
+      </TabItem>
+      <TabItem Header="חובות">
+        <Grid Margin="0,12,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+
+          <WrapPanel Margin="0,0,0,6">
+            <RadioButton Style="{StaticResource Segment}" GroupName="DebtView" Tag="{StaticResource WarningBrush}"
+                         Content="{Binding IOweTotal}" AutomationProperties.Name="אני חייבת" IsChecked="{Binding ShowIOwe}" />
+            <RadioButton Style="{StaticResource Segment}" GroupName="DebtView"
+                         Content="{Binding OwedToMeTotal}" AutomationProperties.Name="חייבים לי" IsChecked="{Binding ShowOwedToMe}" />
+            <RadioButton Style="{StaticResource Segment}" GroupName="DebtView" Tag="{StaticResource MutedTextBrush}"
+                         Content="{Binding SettledHeader}" AutomationProperties.Name="הוחזרו" IsChecked="{Binding ShowSettled}" />
+          </WrapPanel>
+
+          <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+              <ItemsControl ItemsSource="{Binding IOwe}" Visibility="{Binding ShowIOwe, Converter={StaticResource VisibleWhenTrue}}" />
+              <ItemsControl ItemsSource="{Binding OwedToMe}" Visibility="{Binding ShowOwedToMe, Converter={StaticResource VisibleWhenTrue}}" />
+              <ItemsControl ItemsSource="{Binding SettledDebts}" Visibility="{Binding ShowSettled, Converter={StaticResource VisibleWhenTrue}}" />
+
+              <StackPanel Margin="0,40,0,24" HorizontalAlignment="Center"
+                          Visibility="{Binding NoDebtsInView, Converter={StaticResource VisibleWhenTrue}}">
+                <TextBlock Style="{StaticResource Glyph}" Text="&#xE8C7;" FontSize="40" HorizontalAlignment="Center"
+                           Foreground="{StaticResource AccentBrush}" />
+                <TextBlock Text="{Binding DebtsEmptyTitle}" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4" />
+                <TextBlock Text="{Binding DebtsEmptyHint}" Style="{StaticResource MutedText}"
+                           HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+              </StackPanel>
+            </StackPanel>
+          </ScrollViewer>
+
+          <Button Grid.Row="2" HorizontalAlignment="Left" Margin="0,8,0,0" AutomationProperties.Name="חוב חדש"
+                  Command="{Binding NewDebtCommand}">
+            <StackPanel Orientation="Horizontal">
+              <TextBlock Style="{StaticResource Glyph}" Text="&#xE710;" Margin="0,0,8,0" />
+              <TextBlock Text="חוב חדש" />
+            </StackPanel>
+          </Button>
         </Grid>
       </TabItem>
       <TabItem Header="היסטוריה">

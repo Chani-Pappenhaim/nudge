@@ -72,4 +72,10 @@
     <Setter Property="BorderThickness" Value="0" />
   </Style>
 
+  <!-- Tooltips inherit the font of their control; icon buttons use the icon font, which has no letters. -->
+  <Style TargetType="ToolTip" BasedOn="{StaticResource {x:Type ToolTip}}">
+    <Setter Property="FontFamily" Value="Segoe UI" />
+    <Setter Property="FontSize" Value="12" />
+  </Style>
+
 </ResourceDictionary>

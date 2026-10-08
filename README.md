@@ -21,7 +21,7 @@ Two options, both built as described below:
   appears in *Settings → Apps* for uninstalling.
 - **Portable** — `Nudge.exe`. A single self-contained file; just run it. No .NET runtime needed.
 
-Data is stored in `%APPDATA%\Nudge` (`reminders.json`, `history.json`). Uninstalling asks whether to delete it.
+Data is stored in `%APPDATA%\Nudge` (`reminders.json`, `history.json`, `debts.json`). Uninstalling asks whether to delete it.
 
 ## Architecture
 

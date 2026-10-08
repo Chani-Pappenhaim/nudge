@@ -17,6 +17,8 @@ public static class ServiceCollectionExtensions
             new JsonFileStore<ReminderRecord>(Path.Combine(dataDirectory, "reminders.json"))));
         services.AddSingleton<IHistoryRepository>(_ => new JsonHistoryRepository(
             new JsonFileStore<HistoryEntry>(Path.Combine(dataDirectory, "history.json"))));
+        services.AddSingleton<IDebtRepository>(_ => new JsonDebtRepository(
+            new JsonFileStore<DebtRecord>(Path.Combine(dataDirectory, "debts.json"))));
         services.AddSingleton<ISoundPlayer, WindowsSoundPlayer>();
         services.AddSingleton<IStartupManager>(_ => new RegistryStartupManager(executablePath));
         return services;

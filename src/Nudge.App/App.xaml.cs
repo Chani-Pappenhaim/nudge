@@ -15,11 +15,17 @@ namespace Nudge.App;
 [SuppressMessage("Design", "CA1001", Justification = "Owned resources are released in OnExit, the application's lifetime end.")]
 public partial class App : Application
 {
-    private const string ActivationEventName = @"Local\Nudge.Activate.6F1C2B7E";
+#if DEBUG
+    // Development builds are a separate instance with their own data, so they run beside the installed app.
+    private const string InstanceName = "Nudge.Dev";
+#else
+    private const string InstanceName = "Nudge";
+#endif
+    private const string ActivationEventName = @"Local\" + InstanceName + ".Activate.6F1C2B7E";
     private const string StartMinimizedArgument = "--minimized";
 
     private static readonly string DataDirectory = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Nudge");
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), InstanceName);
 
     private EventWaitHandle? _activationSignal;
     private RegisteredWaitHandle? _activationWait;
@@ -79,7 +85,8 @@ public partial class App : Application
             .AddSingleton<ReminderScheduler>()
             .AddSingleton<TrayIconService>()
             .AddSingleton<MainViewModel>()
-            .AddTransient<ReminderEditorViewModel>();
+            .AddTransient<ReminderEditorViewModel>()
+            .AddTransient<SnoozeTimeViewModel>();
         return builder.Build();
     }
 

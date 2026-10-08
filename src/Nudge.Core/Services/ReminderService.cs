@@ -54,6 +54,14 @@ public sealed class ReminderService(
         Update(id, r => r.Snooze(Now, duration),
             r => new HistoryEntry(Now, r.Title, HistoryAction.Snoozed, duration));
 
+    /// <summary>Postpones a reminder to a chosen moment; the history records how far it was pushed.</summary>
+    public void SnoozeUntil(Guid id, DateTime until)
+    {
+        var now = Now;
+        Update(id, r => r.SnoozeUntil(until, now),
+            r => new HistoryEntry(now, r.Title, HistoryAction.Snoozed, until - now));
+    }
+
     public void SetActive(Guid id, bool isActive) =>
         Update(id, r => isActive ? r.Resume(Now) : r.Pause());
 

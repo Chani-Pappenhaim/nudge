@@ -73,6 +73,21 @@ public class ReminderServiceTests
     }
 
     [Fact]
+    public void SnoozeUntil_PostponesToTheChosenMomentAndLogsHowFar()
+    {
+        var reminder = Add("dentist", Start.AddMinutes(-10));
+        var nextWeek = Start.AddDays(7).AddHours(-3);
+
+        _service.SnoozeUntil(reminder.Id, nextWeek);
+
+        Assert.Equal(nextWeek, _service.Find(reminder.Id)!.DueAt);
+        Assert.Empty(_service.GetDue());
+        var entry = _service.GetHistory().Single();
+        Assert.Equal(HistoryAction.Snoozed, entry.Action);
+        Assert.Equal(nextWeek - Start, entry.SnoozeDuration);
+    }
+
+    [Fact]
     public void Delete_RemovesReminderAndLogsHistory()
     {
         var reminder = Add("old", Start);
@@ -90,6 +105,7 @@ public class ReminderServiceTests
 
         _service.Complete(unknown);
         _service.Snooze(unknown, TimeSpan.FromMinutes(5));
+        _service.SnoozeUntil(unknown, Start.AddDays(1));
         _service.Delete(unknown);
 
         Assert.Empty(_service.GetHistory());

@@ -77,8 +77,10 @@ public sealed class WindowService(
     /// <summary>Shows an alert above the previous ones in the bottom corner of the screen.</summary>
     public void ShowAlert(Reminder reminder, Action onClosed)
     {
-        var viewModel = new AlertViewModel(reminder, reminders, sounds, time);
-        var window = new AlertWindow(viewModel);
+        AlertWindow? window = null;
+        var viewModel = new AlertViewModel(reminder, reminders, sounds, time,
+            suggestion => PickSnoozeTime(window!, reminder.Title, suggestion));
+        window = new AlertWindow(viewModel);
         window.SizeChanged += (_, _) => ArrangeAlerts();
         window.Closed += (_, _) =>
         {
@@ -90,6 +92,15 @@ public sealed class WindowService(
         window.Show();
         ArrangeAlerts();
         viewModel.Start();
+    }
+
+    /// <summary>Asks for a moment to postpone an alert to. Closing the alert closes this dialog as well.</summary>
+    private DateTime? PickSnoozeTime(AlertWindow alert, string title, DateTime suggestion)
+    {
+        var viewModel = services.GetRequiredService<SnoozeTimeViewModel>();
+        viewModel.Load(suggestion);
+        var dialog = new SnoozeTimeWindow(viewModel, title) { Owner = alert };
+        return dialog.ShowDialog() == true ? viewModel.Result : null;
     }
 
     public void ExitApplication()

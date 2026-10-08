@@ -61,6 +61,30 @@ public class ReminderTests
     }
 
     [Fact]
+    public void SnoozeUntil_PostponesToTheChosenMomentAndKeepsTheCadence()
+    {
+        var now = Scheduled.AddMinutes(2);
+        var nextWeek = Scheduled.AddDays(7);
+
+        var snoozed = Daily().SnoozeUntil(nextWeek, now);
+        var done = snoozed.Complete(nextWeek.AddMinutes(1));
+
+        Assert.Equal(nextWeek, snoozed.DueAt);
+        Assert.Equal(Scheduled, snoozed.ScheduledAt);
+        Assert.Equal(Scheduled.AddDays(8), done.ScheduledAt);
+        Assert.Null(done.SnoozedUntil);
+    }
+
+    [Fact]
+    public void SnoozeUntil_RejectsAMomentThatIsNotInTheFuture()
+    {
+        var now = Scheduled.AddMinutes(2);
+
+        Assert.Throws<ArgumentOutOfRangeException>(() => Daily().SnoozeUntil(now, now));
+        Assert.Throws<ArgumentOutOfRangeException>(() => Daily().SnoozeUntil(now.AddMinutes(-1), now));
+    }
+
+    [Fact]
     public void Resume_RepeatingReminder_SkipsOccurrencesMissedWhilePaused()
     {
         var resumed = Daily().Pause().Resume(Scheduled.AddDays(3).AddHours(1));

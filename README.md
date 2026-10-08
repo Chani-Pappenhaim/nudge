@@ -4,7 +4,8 @@ A lightweight Windows reminder app with a Hebrew, right-to-left interface.
 
 - One-time, daily, weekly or every-N-minutes reminders
 - Always-on-top alerts that stack in the corner of the screen, with a repeating sound
-- Snooze for 5/10/30/60 minutes or mark as done; closing an alert snoozes it instead of losing it
+- Snooze for minutes, an hour, until tomorrow or a week, or to any date and time; or mark as done.
+  Closing an alert snoozes it instead of losing it
 - Pause and resume — repeating reminders skip occurrences missed while paused or while the PC was off
 - History of completed, snoozed and deleted reminders
 - Runs from the notification area, optional start with Windows, single instance

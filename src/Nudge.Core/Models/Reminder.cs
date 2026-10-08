@@ -59,6 +59,13 @@ public sealed record Reminder
         return this with { SnoozedUntil = now + duration };
     }
 
+    /// <summary>Postpones the current occurrence to a specific moment, which must be in the future.</summary>
+    public Reminder SnoozeUntil(DateTime until, DateTime now)
+    {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(until, now);
+        return this with { SnoozedUntil = until };
+    }
+
     public Reminder Pause() => this with { IsActive = false, SnoozedUntil = null };
 
     /// <summary>Reactivates the reminder; a repeating reminder skips occurrences missed while paused.</summary>

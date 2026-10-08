@@ -8,7 +8,7 @@ using Nudge.Core.Services;
 
 namespace Nudge.App.Services;
 
-/// <summary>Owns the application's windows: the main window, the editor and the stacked alerts.</summary>
+/// <summary>Owns the application's windows: the main window, the editors and the stacked alerts.</summary>
 public sealed class WindowService(
     IServiceProvider services,
     ReminderService reminders,
@@ -19,7 +19,7 @@ public sealed class WindowService(
 
     private readonly List<AlertWindow> _alerts = [];
     private MainWindow? _main;
-    private ReminderEditorWindow? _editor;
+    private Window? _editor;
 
     /// <summary>Raised when the main window is closed to the notification area.</summary>
     public event EventHandler? MainHidden;
@@ -40,16 +40,40 @@ public sealed class WindowService(
         _main.Activate();
     }
 
-    public bool EditReminder(Reminder? reminder)
+    public Reminder? EditReminder(Reminder? reminder) => ShowReminderEditor(vm => vm.Load(reminder));
+
+    public Reminder? NewReminder(string title, string note) => ShowReminderEditor(vm => vm.LoadDraft(title, note));
+
+    public DebtDirection? EditDebt(Debt? debt, DebtDirection newDebtDirection = DebtDirection.IOwe)
+    {
+        var viewModel = services.GetRequiredService<DebtEditorViewModel>();
+        viewModel.Load(debt, newDebtDirection);
+        return ShowEditor(() => new DebtEditorWindow(viewModel)) ? viewModel.SavedDirection : null;
+    }
+
+    public bool RecordPayment(Debt debt)
+    {
+        var viewModel = services.GetRequiredService<DebtPaymentViewModel>();
+        viewModel.Load(debt);
+        return ShowEditor(() => new DebtPaymentWindow(viewModel));
+    }
+
+    private Reminder? ShowReminderEditor(Action<ReminderEditorViewModel> load)
+    {
+        var viewModel = services.GetRequiredService<ReminderEditorViewModel>();
+        load(viewModel);
+        return ShowEditor(() => new ReminderEditorWindow(viewModel)) ? viewModel.Result : null;
+    }
+
+    /// <summary>Shows one editing dialog at a time; while one is open, it is brought forward instead.</summary>
+    private bool ShowEditor(Func<Window> create)
     {
         if (_editor is not null)
         {
             _editor.Activate();
             return false;
         }
-        var viewModel = services.GetRequiredService<ReminderEditorViewModel>();
-        viewModel.Load(reminder);
-        _editor = new ReminderEditorWindow(viewModel);
+        _editor = create();
         if (_main is { IsVisible: true })
         {
             _editor.Owner = _main;

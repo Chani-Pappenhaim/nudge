@@ -1,0 +1,65 @@
+<Window x:Class="Nudge.App.Views.DebtEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Nudge.App.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:DebtEditorViewModel}"
+        Title="{Binding WindowTitle}" Icon="/Assets/nudge.ico"
+        Width="440" SizeToContent="Height" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False"
+        FlowDirection="RightToLeft">
+
+  <StackPanel Margin="24,12,24,20">
+    <TextBlock Text="{Binding WindowTitle}" FontSize="20" FontWeight="SemiBold" />
+
+    <Grid>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="12" />
+        <ColumnDefinition Width="*" />
+      </Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock Text="כיוון" Style="{StaticResource FieldLabel}" />
+        <ComboBox ItemsSource="{x:Static vm:DebtEditorViewModel.DirectionOptions}" AutomationProperties.Name="כיוון"
+                  DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding Direction}" />
+      </StackPanel>
+      <StackPanel Grid.Column="2">
+        <TextBlock Text="סוג" Style="{StaticResource FieldLabel}" />
+        <ComboBox ItemsSource="{x:Static vm:DebtEditorViewModel.KindOptions}" AutomationProperties.Name="סוג"
+                  DisplayMemberPath="Label" SelectedValuePath="Value" SelectedValue="{Binding IsMoney}"
+                  IsEnabled="{Binding CanChangeKind}" />
+      </StackPanel>
+    </Grid>
+
+    <TextBlock Text="שם" Style="{StaticResource FieldLabel}" />
+    <TextBox x:Name="PersonBox" Text="{Binding Person, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="שם" />
+
+    <StackPanel Visibility="{Binding IsMoney, Converter={StaticResource VisibleWhenTrue}}">
+      <TextBlock Text="סכום (₪)" Style="{StaticResource FieldLabel}" />
+      <TextBox Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}" FlowDirection="LeftToRight"
+               AutomationProperties.Name="סכום" />
+    </StackPanel>
+
+    <TextBlock Text="{Binding DescriptionLabel}" Style="{StaticResource FieldLabel}" />
+    <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" AutomationProperties.Name="תיאור" />
+
+    <TextBlock Text="{Binding Error}" Foreground="{StaticResource DangerBrush}" TextWrapping="Wrap" Margin="0,14,0,0">
+      <TextBlock.Style>
+        <Style TargetType="TextBlock">
+          <Style.Triggers>
+            <Trigger Property="Text" Value="">
+              <Setter Property="Visibility" Value="Collapsed" />
+            </Trigger>
+          </Style.Triggers>
+        </Style>
+      </TextBlock.Style>
+    </TextBlock>
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,20,0,0">
+      <Button Content="ביטול" IsCancel="True" Padding="16,7" Margin="0,0,8,0" />
+      <Button Content="שמירה" IsDefault="True" Style="{StaticResource AccentButton}" Command="{Binding SaveCommand}" />
+    </StackPanel>
+  </StackPanel>
+</Window>

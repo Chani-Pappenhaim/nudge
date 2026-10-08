@@ -12,6 +12,7 @@ namespace Nudge.App.ViewModels;
 public sealed partial class ReminderEditorViewModel(ReminderService reminders, ISoundPlayer sounds) : ObservableObject
 {
     private static readonly TimeSpan DefaultLeadTime = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan DraftTimeOfDay = TimeSpan.FromHours(10);
 
     private Reminder? _existing;
 
@@ -43,6 +44,9 @@ public sealed partial class ReminderEditorViewModel(ReminderService reminders, I
     /// <summary>Raised after the reminder was validated and stored.</summary>
     public event EventHandler? Saved;
 
+    /// <summary>The reminder as stored by the last successful save.</summary>
+    public Reminder? Result { get; private set; }
+
     public static IReadOnlyList<Choice<RecurrenceKind>> RecurrenceOptions { get; } =
         [.. Enum.GetValues<RecurrenceKind>().Select(k => new Choice<RecurrenceKind>(k, Labels.Of(k)))];
 
@@ -68,7 +72,18 @@ public sealed partial class ReminderEditorViewModel(ReminderService reminders, I
         }
         Sound = reminder?.Sound ?? AlertSound.Default;
         Error = null;
+        Result = null;
         OnPropertyChanged(nameof(WindowTitle));
+    }
+
+    /// <summary>Starts a new reminder with suggested text, due tomorrow morning.</summary>
+    public void LoadDraft(string title, string note)
+    {
+        Load(null);
+        Title = title;
+        Note = note;
+        Date = reminders.Now.Date.AddDays(1);
+        Time = TimeInput.Format(DateTime.MinValue + DraftTimeOfDay);
     }
 
     [RelayCommand]
@@ -83,6 +98,7 @@ public sealed partial class ReminderEditorViewModel(ReminderService reminders, I
             return;
         }
         reminders.Save(reminder);
+        Result = reminder;
         Saved?.Invoke(this, EventArgs.Empty);
     }
 

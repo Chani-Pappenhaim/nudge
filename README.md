@@ -8,6 +8,8 @@ A lightweight Windows reminder app with a Hebrew, right-to-left interface.
   Closing an alert snoozes it instead of losing it
 - Pause and resume — repeating reminders skip occurrences missed while paused or while the PC was off
 - History of completed, snoozed and deleted reminders
+- Debts — money or lent items, owed by you or to you, with partial repayments, a history of what was
+  returned, and an optional reminder that is removed once the debt is settled
 - Runs from the notification area, optional start with Windows, single instance
 
 ## Download and run

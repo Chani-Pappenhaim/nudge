@@ -8,4 +8,6 @@ internal static class Glyphs
     public const string Completed = "";
     public const string Snoozed = "";
     public const string Deleted = "";
+    public const string Money = "";
+    public const string Item = "";
 }

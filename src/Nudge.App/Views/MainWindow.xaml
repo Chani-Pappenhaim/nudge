@@ -1,0 +1,138 @@
+<Window x:Class="Nudge.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:Nudge.App.ViewModels"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=vm:MainViewModel}"
+        Title="Nudge" Icon="/Assets/nudge.ico"
+        Width="580" Height="660" MinWidth="460" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        FlowDirection="RightToLeft">
+
+  <Window.Resources>
+    <DataTemplate DataType="{x:Type vm:ReminderItemViewModel}">
+      <Border x:Name="Card" Style="{StaticResource Card}">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <Border x:Name="StatusBar" Width="4" CornerRadius="2" Background="{StaticResource AccentBrush}" />
+
+          <StackPanel Grid.Column="1" Margin="12,0">
+            <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding Note}" Style="{StaticResource MutedText}" TextWrapping="Wrap" Margin="0,2,0,0"
+                       Visibility="{Binding HasNote, Converter={StaticResource VisibleWhenTrue}}" />
+            <WrapPanel Margin="0,6,0,0">
+              <TextBlock Style="{StaticResource Glyph}" Text="&#xE823;" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,5,0" />
+              <TextBlock Text="{Binding WhenText}" Style="{StaticResource MutedText}" Margin="0,0,14,0" />
+              <TextBlock Style="{StaticResource Glyph}" Text="&#xE8EE;" Foreground="{StaticResource MutedTextBrush}" Margin="0,0,5,0" />
+              <TextBlock Text="{Binding RecurrenceText}" Style="{StaticResource MutedText}" />
+            </WrapPanel>
+          </StackPanel>
+
+          <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+            <Button Style="{StaticResource IconButton}" Content="&#xE70F;" ToolTip="עריכה" AutomationProperties.Name="עריכה"
+                    Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="{Binding ToggleGlyph}" ToolTip="{Binding ToggleToolTip}" AutomationProperties.Name="{Binding ToggleToolTip}"
+                    Command="{Binding DataContext.TogglePauseCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+            <Button Style="{StaticResource IconButton}" Content="&#xE74D;" ToolTip="מחיקה" AutomationProperties.Name="מחיקה" Foreground="{StaticResource DangerBrush}"
+                    Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                    CommandParameter="{Binding}" />
+          </StackPanel>
+        </Grid>
+      </Border>
+      <DataTemplate.Triggers>
+        <DataTrigger Binding="{Binding IsActive}" Value="False">
+          <Setter TargetName="StatusBar" Property="Background" Value="{StaticResource InactiveBrush}" />
+          <Setter TargetName="Card" Property="Opacity" Value="0.6" />
+        </DataTrigger>
+      </DataTemplate.Triggers>
+    </DataTemplate>
+
+    <DataTemplate DataType="{x:Type vm:HistoryItemViewModel}">
+      <Border Style="{StaticResource Card}" Padding="14,10">
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+          <TextBlock Style="{StaticResource Glyph}" Text="{Binding Glyph}" FontSize="16" Foreground="{StaticResource AccentBrush}" />
+          <StackPanel Grid.Column="1" Margin="12,0">
+            <TextBlock Text="{Binding Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" />
+            <TextBlock Text="{Binding ActionText}" Style="{StaticResource MutedText}" />
+          </StackPanel>
+          <TextBlock Grid.Column="2" Text="{Binding WhenText}" Style="{StaticResource MutedText}" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </DataTemplate>
+  </Window.Resources>
+
+  <Grid Margin="20,16,20,20">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Grid Margin="0,0,0,12">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*" />
+        <ColumnDefinition Width="Auto" />
+      </Grid.ColumnDefinitions>
+      <StackPanel>
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Text="Nudge" FontSize="26" FontWeight="SemiBold" />
+          <Ellipse Width="8" Height="8" Fill="{StaticResource AccentBrush}" Margin="4,12,0,0" VerticalAlignment="Center" />
+        </StackPanel>
+        <CheckBox Content="הפעלה אוטומטית עם Windows" IsChecked="{Binding StartWithWindows}" Margin="0,4,0,0" />
+      </StackPanel>
+      <Button Grid.Column="1" Style="{StaticResource AccentButton}" VerticalAlignment="Top" Margin="0,4,0,0"
+              AutomationProperties.Name="תזכורת חדשה" Command="{Binding NewReminderCommand}">
+        <StackPanel Orientation="Horizontal">
+          <TextBlock Style="{StaticResource Glyph}" Text="&#xE710;" Margin="0,0,8,0" />
+          <TextBlock Text="תזכורת חדשה" />
+        </StackPanel>
+      </Button>
+    </Grid>
+
+    <TabControl Grid.Row="1" Background="Transparent" BorderThickness="0">
+      <TabItem Header="תזכורות">
+        <Grid Margin="0,12,0,0">
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding Reminders}" />
+          </ScrollViewer>
+          <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                      Visibility="{Binding NoReminders, Converter={StaticResource VisibleWhenTrue}}">
+            <TextBlock Style="{StaticResource Glyph}" Text="&#xEA8F;" FontSize="40" HorizontalAlignment="Center"
+                       Foreground="{StaticResource AccentBrush}" />
+            <TextBlock Text="אין עדיין תזכורות" FontSize="16" FontWeight="SemiBold" HorizontalAlignment="Center" Margin="0,12,0,4" />
+            <TextBlock Text="לחיצה על &quot;תזכורת חדשה&quot; תיצור את הראשונה." Style="{StaticResource MutedText}" HorizontalAlignment="Center" />
+          </StackPanel>
+        </Grid>
+      </TabItem>
+      <TabItem Header="היסטוריה">
+        <Grid Margin="0,12,0,0">
+          <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+          </Grid.RowDefinitions>
+          <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding History}" />
+          </ScrollViewer>
+          <TextBlock Text="עדיין אין פעולות בהיסטוריה." Style="{StaticResource MutedText}" FontSize="14"
+                     HorizontalAlignment="Center" VerticalAlignment="Center"
+                     Visibility="{Binding NoHistory, Converter={StaticResource VisibleWhenTrue}}" />
+          <Button Grid.Row="1" Content="ניקוי היסטוריה" HorizontalAlignment="Left" Margin="0,8,0,0"
+                  Command="{Binding ClearHistoryCommand}" />
+        </Grid>
+      </TabItem>
+    </TabControl>
+  </Grid>
+</Window>

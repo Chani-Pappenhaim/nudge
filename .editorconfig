@@ -14,3 +14,7 @@ indent_size = 2
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_style_var_for_built_in_types = true:suggestion
 dotnet_sort_system_directives_first = true
+
+# Test names follow the Method_Scenario_Expectation convention.
+[tests/**.cs]
+dotnet_diagnostic.CA1707.severity = none

@@ -11,8 +11,14 @@ A lightweight Windows reminder app with a Hebrew, right-to-left interface.
 
 ## Download and run
 
-Build `Nudge.exe` (below) and run it. It is a single self-contained file — no installation and no .NET runtime needed.
-Data is stored in `%APPDATA%\Nudge` (`reminders.json`, `history.json`).
+Two options, both built as described below:
+
+- **Installer** — `NudgeSetup-<version>.exe` (Hebrew). Installs for the current user without administrator
+  rights, adds Start menu and optional desktop shortcuts and an optional start-with-Windows entry, and
+  appears in *Settings → Apps* for uninstalling.
+- **Portable** — `Nudge.exe`. A single self-contained file; just run it. No .NET runtime needed.
+
+Data is stored in `%APPDATA%\Nudge` (`reminders.json`, `history.json`). Uninstalling asks whether to delete it.
 
 ## Architecture
 
@@ -45,3 +51,12 @@ dotnet publish src/Nudge.App -p:PublishProfile=win-x64
 ```
 
 The executable is written to `artifacts/publish/Nudge.exe`.
+
+To build the installer, install [Inno Setup 6](https://jrsoftware.org/isinfo.php) and compile the script
+after publishing:
+
+```bash
+ISCC.exe installer/Nudge.iss
+```
+
+The installer is written to `artifacts/installer/`.

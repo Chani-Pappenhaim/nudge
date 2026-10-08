@@ -5,11 +5,12 @@ namespace Nudge.Core;
 
 public static class ServiceCollectionExtensions
 {
-    /// <summary>Registers the core reminder use cases.</summary>
+    /// <summary>Registers the core reminder and debt use cases.</summary>
     public static IServiceCollection AddNudgeCore(this IServiceCollection services)
     {
         services.AddSingleton(TimeProvider.System);
         services.AddSingleton<ReminderService>();
+        services.AddSingleton<DebtService>();
         return services;
     }
 }

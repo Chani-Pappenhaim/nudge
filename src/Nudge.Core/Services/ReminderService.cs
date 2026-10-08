@@ -36,14 +36,15 @@ public sealed class ReminderService(
         OnChanged();
     }
 
-    public void Delete(Guid id)
+    /// <summary>Removes a reminder; the history records it as deleted unless another outcome is given.</summary>
+    public void Delete(Guid id, HistoryAction loggedAs = HistoryAction.Deleted)
     {
         if (Find(id) is not { } reminder)
         {
             return;
         }
         reminders.Delete(id);
-        history.Add(new HistoryEntry(Now, reminder.Title, HistoryAction.Deleted));
+        history.Add(new HistoryEntry(Now, reminder.Title, loggedAs));
         OnChanged();
     }
 

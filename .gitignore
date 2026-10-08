@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # The *.app rule above targets macOS bundles; on case-insensitive file systems it also matches this project.
 !/src/Nudge.App/
+
+# The publish profile holds no credentials and is needed to build the exe.
+!/src/Nudge.App/Properties/PublishProfiles/win-x64.pubxml

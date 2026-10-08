@@ -11,7 +11,6 @@ namespace Nudge.App.ViewModels;
 /// <summary>Creates a new reminder or edits an existing one.</summary>
 public sealed partial class ReminderEditorViewModel(ReminderService reminders, ISoundPlayer sounds) : ObservableObject
 {
-    private static readonly string[] TimeFormats = ["H:mm", "HH:mm", "H"];
     private static readonly TimeSpan DefaultLeadTime = TimeSpan.FromMinutes(5);
 
     private Reminder? _existing;
@@ -57,11 +56,11 @@ public sealed partial class ReminderEditorViewModel(ReminderService reminders, I
     public void Load(Reminder? reminder)
     {
         _existing = reminder;
-        var at = reminder?.ScheduledAt ?? TruncateToMinute(reminders.Now + DefaultLeadTime);
+        var at = reminder?.ScheduledAt ?? TimeInput.TruncateToMinute(reminders.Now + DefaultLeadTime);
         Title = reminder?.Title ?? string.Empty;
         Note = reminder?.Note ?? string.Empty;
         Date = at.Date;
-        Time = at.ToString("HH:mm", CultureInfo.InvariantCulture);
+        Time = TimeInput.Format(at);
         Recurrence = reminder?.Recurrence.Kind ?? RecurrenceKind.Once;
         if (reminder?.Recurrence.Kind == RecurrenceKind.Interval)
         {
@@ -99,9 +98,9 @@ public sealed partial class ReminderEditorViewModel(ReminderService reminders, I
         {
             return "יש לבחור תאריך.";
         }
-        if (!TimeOnly.TryParseExact(Time.Trim(), TimeFormats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var time))
+        if (!TimeInput.TryParse(Time, out var time))
         {
-            return "שעה לא תקינה. יש לכתוב למשל 14:30.";
+            return TimeInput.InvalidMessage;
         }
         if (BuildRecurrence() is not { } recurrence)
         {
@@ -141,7 +140,4 @@ public sealed partial class ReminderEditorViewModel(ReminderService reminders, I
             ? Core.Models.Recurrence.Every(interval)
             : null;
     }
-
-    private static DateTime TruncateToMinute(DateTime value) =>
-        value.AddTicks(-(value.Ticks % TimeSpan.TicksPerMinute));
 }

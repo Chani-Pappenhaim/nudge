@@ -21,24 +21,38 @@ public sealed partial class AlertViewModel : IDisposable
     private readonly ReminderService _reminders;
     private readonly ISoundPlayer _sounds;
     private readonly TimeProvider _time;
+    private readonly Func<DateTime, DateTime?> _pickSnoozeTime;
     private ITimer? _soundTimer;
     private int _soundsPlayed;
     private bool _isResolved;
 
-    public AlertViewModel(Reminder reminder, ReminderService reminders, ISoundPlayer sounds, TimeProvider time)
+    /// <param name="pickSnoozeTime">
+    /// Asks the user for a moment to postpone to, starting from the given suggestion; null when cancelled.
+    /// </param>
+    public AlertViewModel(Reminder reminder, ReminderService reminders, ISoundPlayer sounds, TimeProvider time,
+        Func<DateTime, DateTime?> pickSnoozeTime)
     {
         _reminder = reminder;
         _reminders = reminders;
         _sounds = sounds;
         _time = time;
+        _pickSnoozeTime = pickSnoozeTime;
         WhenText = Labels.When(reminder.DueAt, reminders.Now);
     }
 
     /// <summary>Raised when the alert has been handled and its window should close.</summary>
     public event EventHandler? CloseRequested;
 
+    /// <summary>Quick postpone choices, in minutes: from a few minutes up to a week.</summary>
     public static IReadOnlyList<Choice<int>> SnoozeOptions { get; } =
-        [.. new[] { 5, 10, 30, 60 }.Select(minutes => new Choice<int>(minutes, $"{minutes} דק׳"))];
+    [
+        new(5, "5 דק׳"),
+        new(10, "10 דק׳"),
+        new(30, "30 דק׳"),
+        new(60, "שעה"),
+        new(24 * 60, "מחר"),
+        new(7 * 24 * 60, "שבוע"),
+    ];
 
     public string Title => _reminder.Title;
 
@@ -74,8 +88,7 @@ public sealed partial class AlertViewModel : IDisposable
     public void Dispose()
     {
         _reminders.Changed -= OnRemindersChanged;
-        _soundTimer?.Dispose();
-        _soundTimer = null;
+        StopSound();
     }
 
     [RelayCommand]
@@ -83,6 +96,19 @@ public sealed partial class AlertViewModel : IDisposable
 
     [RelayCommand]
     private void Snooze(int minutes) => Resolve(() => _reminders.Snooze(_reminder.Id, TimeSpan.FromMinutes(minutes)));
+
+    /// <summary>Postpones to a date and time the user picks, e.g. next week. Cancelling keeps the alert open.</summary>
+    [RelayCommand]
+    private void SnoozeToChosenTime()
+    {
+        StopSound();
+        var suggestion = TimeInput.TruncateToMinute(_reminders.Now).AddDays(1);
+        // The alert may have been handled elsewhere while the picker was open.
+        if (_pickSnoozeTime(suggestion) is { } until && !_isResolved && until > _reminders.Now)
+        {
+            Resolve(() => _reminders.SnoozeUntil(_reminder.Id, until));
+        }
+    }
 
     private void Resolve(Action action)
     {
@@ -102,6 +128,12 @@ public sealed partial class AlertViewModel : IDisposable
         {
             Abandon();
         }
+    }
+
+    private void StopSound()
+    {
+        _soundTimer?.Dispose();
+        _soundTimer = null;
     }
 
     private void PlaySound()

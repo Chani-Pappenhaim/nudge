@@ -6,6 +6,9 @@ namespace Nudge.App.Presentation;
 /// <summary>Hebrew display text for domain values.</summary>
 internal static class Labels
 {
+    private const int MinutesPerDay = 24 * 60;
+    private const int MinutesPerWeek = 7 * MinutesPerDay;
+
     public static string Of(RecurrenceKind kind) => kind switch
     {
         RecurrenceKind.Once => "פעם אחת",
@@ -31,25 +34,38 @@ internal static class Labels
     public static string Describe(HistoryEntry entry) => entry.Action switch
     {
         HistoryAction.Completed => "בוצע",
-        HistoryAction.Snoozed when entry.SnoozeDuration is { } duration => $"נדחה ב-{Duration(duration)}",
+        HistoryAction.Snoozed when entry.SnoozeDuration is { } duration && IsWholeUnit(duration) =>
+            $"נדחה ב-{Duration(duration)}",
+        HistoryAction.Snoozed when entry.SnoozeDuration is { } duration => $"נדחה {To(entry.At + duration, entry.At)}",
         HistoryAction.Snoozed => "נדחה",
         HistoryAction.Deleted => "נמחק",
         _ => entry.Action.ToString(),
     };
 
+    /// <summary>Names a duration in its largest whole unit, e.g. "שבועיים", "3 ימים", "90 דקות".</summary>
     public static string Duration(TimeSpan duration)
     {
         var minutes = (int)duration.TotalMinutes;
-        if (minutes % 60 != 0)
+        if (minutes >= MinutesPerWeek && minutes % MinutesPerWeek == 0)
         {
-            return minutes == 1 ? "דקה" : $"{minutes} דקות";
+            return Count(minutes / MinutesPerWeek, "שבוע", "שבועיים", "שבועות");
         }
-        return (minutes / 60) switch
+        if (minutes >= MinutesPerDay && minutes % MinutesPerDay == 0)
         {
-            1 => "שעה",
-            2 => "שעתיים",
-            var hours => $"{hours} שעות",
-        };
+            return Count(minutes / MinutesPerDay, "יום", "יומיים", "ימים");
+        }
+        if (minutes >= 60 && minutes % 60 == 0)
+        {
+            return Count(minutes / 60, "שעה", "שעתיים", "שעות");
+        }
+        return Count(minutes, "דקה", "2 דקות", "דקות");
+    }
+
+    /// <summary>Formats the target of a move in time, e.g. "למחר בשעה 09:00" or "ל-15/10/2026 בשעה 09:00".</summary>
+    public static string To(DateTime at, DateTime now)
+    {
+        var when = When(at, now);
+        return char.IsAsciiDigit(when[0]) ? $"ל-{when}" : $"ל{when}";
     }
 
     /// <summary>Formats a moment relative to today, e.g. "מחר בשעה 09:00".</summary>
@@ -65,4 +81,25 @@ internal static class Labels
             _ => $"{at.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture)} בשעה {time}",
         };
     }
+
+    /// <summary>
+    /// True for durations that read naturally as one unit: minutes under an hour, hours under a day,
+    /// or whole days. Anything else (such as a postpone to a chosen date) is better shown as a target time.
+    /// </summary>
+    private static bool IsWholeUnit(TimeSpan duration)
+    {
+        if (duration <= TimeSpan.Zero || duration.Ticks % TimeSpan.TicksPerMinute != 0)
+        {
+            return false;
+        }
+        var minutes = (int)duration.TotalMinutes;
+        return minutes < 60 || (minutes < MinutesPerDay && minutes % 60 == 0) || minutes % MinutesPerDay == 0;
+    }
+
+    private static string Count(int count, string one, string two, string many) => count switch
+    {
+        1 => one,
+        2 => two,
+        _ => $"{count} {many}",
+    };
 }

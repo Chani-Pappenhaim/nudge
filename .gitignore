@@ -482,3 +482,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# The *.app rule above targets macOS bundles; on case-insensitive file systems it also matches this project.
+!/src/Nudge.App/
